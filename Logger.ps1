@@ -29,7 +29,7 @@ function Remove-OlderFile
 
     for ([uint16]$i = 1; $i -lt [uint16]$files.Count; ++$i)
     {
-        if ($creationTime -lt $files[$i].CreationTime)
+        if ($creationTime -gt $files[$i].CreationTime)
         {
             $creationTime = $files[$i].CreationTime
             $indexOlderFile = $i
@@ -52,7 +52,7 @@ function Write-LogsToFile
         [Parameter(Mandatory=$true)][string]$logsFolderPath
     )
     
-    [string]$logFile = "$($logsFolderPath)\$((Get-date).ToString("dd.MM.yyyy HH.MM")).log" 
+    [string]$logFile = "$($logsFolderPath)\$((Get-date).ToString("dd.MM.yyyy HH.mm.ss")).log" 
     $log | Set-Content -Path $logFile
 }
 
@@ -66,26 +66,24 @@ function Write-LogsToFile
 # лимит файлов с логами. Если логов больще - старые удаляем
 [uint16]$limitFiles = 3
 
-Write-Host "start"
 if (Test-Path ($logsFolderPath))
 {
-    Write-Host "looks likr true"
     [uint16]$countExistFiles = (Get-ChildItem `
         -Path $logsFolderPath `
         -Filter "*.log" | Measure-Object).Count
 
-    if ($countExistFiles -lt $limitFiles)
+    if ($countExistFiles -le $limitFiles)
     {
         Write-LogsToFile -log $log -logsFolderPath $logsFolderPath
     }
     else
     {
-        Remove-OlderFile -logsFolderPath $logsFolderPath 
+        Remove-OlderFile -logsFolderPath $logsFolderPath
+        Write-LogsToFile -log $log -logsFolderPath $logsFolderPath
     }
 }
 else
 {
-    Write-Host "not exist"
     New-Item -Path $logPath -Name $folderName -ItemType Directory
     Write-LogsToFile -log $log -logsFolderPath $logsFolderPath
 }

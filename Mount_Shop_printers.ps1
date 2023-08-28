@@ -202,6 +202,7 @@ function Send-Mail()
 
 [string]$username = $env:USERNAME
 [array]$logs = @()
+$logs += "Текущий пользователь - $($username)"
 #region получение списка групп пользователя
 
 try
