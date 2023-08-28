@@ -72,7 +72,7 @@ if (Test-Path ($logsFolderPath))
         -Path $logsFolderPath `
         -Filter "*.log" | Measure-Object).Count
 
-    if ($countExistFiles -le $limitFiles)
+    if ($countExistFiles -lt $limitFiles)
     {
         Write-LogsToFile -log $log -logsFolderPath $logsFolderPath
     }

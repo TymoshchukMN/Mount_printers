@@ -202,7 +202,7 @@ function Send-Mail()
 
 [string]$username = $env:USERNAME
 [array]$logs = @()
-$logs += "Текущий пользователь - $($username)"
+$logs += "Текущий пользователь:`t$($username)"
 #region получение списка групп пользователя
 
 try
@@ -220,7 +220,7 @@ try
     }
     else
     {
-        $logs += "Пользоавтель состоит в группе $($groupList)"
+        $logs += "Пользоавтель состоит в группе:`t$($groupList)"
     }
 }
 catch
@@ -245,7 +245,7 @@ try
     foreach ($distinguishedName in $groupList)
     {
         $codes += Get-CodeByGroup -distinguishedName $distinguishedName
-        $logs += "По группе получен код - $($codes)"
+        $logs += "По группе получен код:`t$($codes)"
     }
 }
 catch
@@ -273,7 +273,7 @@ for ([int16]$i = 0; $i -lt $codes.Count; ++$i)
     $printers += Get-Printers -shopcode $codes[$i] -printSRV $printSRV -log $logs
 }
 
-$logs += "Полученные принтера: $($printers)"
+$logs += "Полученные принтера:`t$($printers)"
 
 # удаляем все подключенные по сети принтера
 Get-Printer | ? {$_.Type -eq "Connection"} | Remove-Printer
