@@ -171,19 +171,21 @@ function Send-Mail()
     param(
         [Parameter(Mandatory=$true)][string]$message
     )
-
-    # ===== кодировка письма
+    
     $encoding = [System.Text.Encoding]::UTF8;    
 
-    [string]$keyPath = "\\aku.com\sysvol\aku.com\scripts\Sender error report\aes.key"
-    [string]$cryptedPass = "\\aku.com\sysvol\aku.com\scripts\Sender error report\password.txt"
+    $json = Get-Content .\mailConfig.json
+    $mailConfig = $json | ConvertFrom-Json
+
+    [string]$keyPath = $mailConfig.keyPath
+    [string]$cryptedPass =  $mailConfig.cryptedPass
     
     $password = Get-Content $cryptedPass | `
         ConvertTo-SecureString -Key (Get-Content $keyPath)
 
     $EmailCredential = 
         New-Object -TypeName System.Management.Automation.PSCredential `
-        -ArgumentList "aku0\error-sender",$Password
+        -ArgumentList $mailConfig.sender,$Password
     
     Send-MailMessage -From error-sender@comfy.ua `
         -To GP-script-processing@comfy.ua `
