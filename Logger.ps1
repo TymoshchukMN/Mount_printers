@@ -3,9 +3,15 @@ param(
     [Parameter(Mandatory=$true)]$log
 )
 
-function Remove-OlderFile {
+<#
+.SYNOPSIS
+    Удалить старый файл
+.DESCRIPTION
+    Удалене стрейшего файла в каталоге
+#>
+function Remove-OlderFile
+{
     param (
-        # Parameter help description
         [Parameter(Mandatory=$true)]
         [string]
         $logsFolderPath
@@ -28,13 +34,28 @@ function Remove-OlderFile {
     Remove-Item -Path $files[$indexOlderFile].FullName -Force
 }
 
+<#
+.SYNOPSIS
+    Запись лога в файл
+#>
+function Write-LogsToFile
+{
+    # лог для записи в файл
+    [Parameter(Mandatory=$true)]$log
+    # каталог для создания файла логов
+    [Parameter(Mandatory=$true)]$logsFolderPath
+
+    
+    [string]$logFile = "$($logsFolderPath)\$((Get-date).ToString("dd.MM.yyyy HH.MM")).log" 
+    $log | Set-Content -Path $logFile
+}
 
 # расположение каталога для хранения логов
 [string]$logPath = "C:\Users\$($env:USERNAME)\Desktop\"
 
 # название каталога с логами
 [string]$folderName = "MountPrinterLogs"
-[string]$logsFolderPath = "$($logPath)\$($folderName)"
+[string]$logsFolderPath = "$($logPath)$($folderName)"
 
 # лимит файлов с логами. Если логов больще - старые удаляем
 [uint16]$limitFiles = 3
