@@ -140,18 +140,20 @@ function Create-HTMLTable()
    Если принтеров нет, бросаем исключение
    Если группа есть, возвращаем код магазина
 #>
-function Get-Printers ([string]$shopcode,[string]$printSRV)
+function Get-Printers(
+    [string]$shopcode,
+    [string]$printSRV,
+    [ref]$log)
 {
     [array]$printers =
         @(Get-Printer -ComputerName $printSRV | `
-            ?{($_.Name -like ("*_"+$shopcode))})
+            ? {($_.Name -like ("*_"+$shopcode))})
 
     # проверяем количество принтеров, если меньше 1,
     # т.е. принтеров нет, бросаем исключение
     if($printers.Count -lt 1)
     {
-        throw "На принт сервере $($printSRV) нет принтера с кодом 
-            <font color=red>$($shopcode)</font>"
+        $log += "На принт сервере $($printSRV) нет принтера с кодом $($shopcode)"
     }
     else
     {
@@ -171,9 +173,10 @@ function Send-Mail()
     param(
         [Parameter(Mandatory=$true)][string]$message
     )
-    
+
     $encoding = [System.Text.Encoding]::UTF8;    
 
+    # получаем конфиг для отпарвки письма
     $json = Get-Content .\mailConfig.json
     $mailConfig = $json | ConvertFrom-Json
 
@@ -191,15 +194,13 @@ function Send-Mail()
         -To GP-script-processing@comfy.ua `
         -Subject "Ошибка выполнения скрипта" `
         -Body $($message | Out-String) -BodyAsHtml -Encoding $encoding `
-        -SmtpServer wm2.comfy.ua -Credential $EmailCredential
-
+        -SmtpServer $mailConfig.SmtpServer -Credential $EmailCredential
 }
-
 
 # ============= начало скрипта ================
 
 [string]$username = $env:USERNAME
-
+[array]$logs = @()
 #region получение списка групп пользователя
 
 try
@@ -211,6 +212,8 @@ try
     # завершаем выполнение скрипта
     if([string]::IsNullOrEmpty($groupList) -or $groupList.Count -lt 1)
     {
+        $logs += "Пользоавтель $($username) не состоит ни в одной группе 'printers access'"
+        .\Logger.ps1 -log $logs
         exit
     }
 }
@@ -223,8 +226,6 @@ catch
      
     $message += $HtmlTable
     Send-Mail -message $message
-    
-    #exit   
 }
 
 #endregion получение списка групп пользователя
@@ -238,10 +239,13 @@ try
     foreach ($distinguishedName in $groupList)
     {
         $codes += Get-CodeByGroup -distinguishedName $distinguishedName
+        $logs += "Получен код $($codes)"
     }
 }
 catch
 {
+    $logs += "Не удалось получить группу по distinguishedName - $($distinguishedName)."
+    .\Logger.ps1 -log $logs
     $HtmlTable = Create-HTMLTable
 
     # Добавляем в тело сообщения, тескт исключения
@@ -249,8 +253,6 @@ catch
      
     $message += $HtmlTable
     Send-Mail -message $message
-    
-    #exit   
 }
 
 #endregion получение кода магазина
@@ -261,11 +263,12 @@ catch
 
 $printers = @()
 for ([int16]$i = 0; $i -lt $codes.Count; ++$i)
-{ 
-    $printers += Get-Printers -shopcode $codes[$i] -printSRV $printSRV
+{
+    $printers += Get-Printers -shopcode $codes[$i] -printSRV $printSRV -log $logs
 }
 
-Write-Host $printers
+$logs += "Полученные принтера: $($printers)"
+
 # удаляем все подключенные по сети принтера
 Get-Printer | ? {$_.Type -eq "Connection"} | Remove-Printer
 
@@ -283,3 +286,5 @@ foreach ($printer in $printers)
 }
 
 #endregion Обработка принтеров
+
+.\Logger.ps1 -log $logs
