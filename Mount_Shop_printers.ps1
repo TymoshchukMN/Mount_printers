@@ -77,7 +77,7 @@ function Get-CodeByGroup
     }
     else
     {
-        # получаем код магазина. Это первые 3 символа 
+        # получаем код магазина.
         # в distinguishedName группы
         [string]$code = ([string]$group).Substring(0,3)
     }
@@ -191,8 +191,8 @@ function Send-Mail()
         New-Object -TypeName System.Management.Automation.PSCredential `
         -ArgumentList $mailConfig.sender,$Password
     
-    Send-MailMessage -From error-sender@comfy.ua `
-        -To GP-script-processing@comfy.ua `
+    Send-MailMessage -From $mailConfig.from `
+        -To $mailConfig.TO `
         -Subject "Ошибка выполнения скрипта" `
         -Body $($message | Out-String) -BodyAsHtml -Encoding $encoding `
         -SmtpServer $mailConfig.SmtpServer -Credential $EmailCredential
