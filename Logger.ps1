@@ -1,3 +1,8 @@
+<# Логгер
+    Автор: TymoshchukMN
+    Создан 28.08.2023
+#>
+
 param(
     # строка лога
     [Parameter(Mandatory=$true)]$log
@@ -40,11 +45,12 @@ function Remove-OlderFile
 #>
 function Write-LogsToFile
 {
-    # лог для записи в файл
-    [Parameter(Mandatory=$true)]$log
-    # каталог для создания файла логов
-    [Parameter(Mandatory=$true)]$logsFolderPath
-
+    param(
+        # лог для записи в файл
+        [Parameter(Mandatory=$true)][string[]]$log,
+        # каталог для создания файла логов
+        [Parameter(Mandatory=$true)][string]$logsFolderPath
+    )
     
     [string]$logFile = "$($logsFolderPath)\$((Get-date).ToString("dd.MM.yyyy HH.MM")).log" 
     $log | Set-Content -Path $logFile
@@ -68,15 +74,15 @@ if (Test-Path ($logPath))
 
     if ($countExistFiles -lt $limitFiles)
     {
-        
+        Write-LogsToFile -log $log -logsFolderPath $logsFolderPath
     }
     else
     {
         Remove-OlderFile -logsFolderPath $logsFolderPath 
     }
-
 }
 else
 {
     New-Item -Path $logPath -Name $folderName -ItemType Directory
+    Write-LogsToFile -log $log -logsFolderPath $logsFolderPath
 }
