@@ -66,8 +66,10 @@ function Write-LogsToFile
 # лимит файлов с логами. Если логов больще - старые удаляем
 [uint16]$limitFiles = 3
 
-if (Test-Path ($logPath))
+Write-Host "start"
+if (Test-Path ($logsFolderPath))
 {
+    Write-Host "looks likr true"
     [uint16]$countExistFiles = (Get-ChildItem `
         -Path $logsFolderPath `
         -Filter "*.log" | Measure-Object).Count
@@ -83,6 +85,7 @@ if (Test-Path ($logPath))
 }
 else
 {
+    Write-Host "not exist"
     New-Item -Path $logPath -Name $folderName -ItemType Directory
     Write-LogsToFile -log $log -logsFolderPath $logsFolderPath
 }

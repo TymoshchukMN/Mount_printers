@@ -5,6 +5,7 @@
     
     Автор: TymoshchukMN
     Создан: 02.08.2023
+    Изменен 28.08.2023
 #>
 
 <#
@@ -143,7 +144,7 @@ function Create-HTMLTable()
 function Get-Printers(
     [string]$shopcode,
     [string]$printSRV,
-    [ref]$log)
+    $log)
 {
     [array]$printers =
         @(Get-Printer -ComputerName $printSRV | `
@@ -216,6 +217,10 @@ try
         .\Logger.ps1 -log $logs
         exit
     }
+    else
+    {
+        $logs += "Пользоавтель состоит в группе $($groupList)"
+    }
 }
 catch
 {
@@ -239,7 +244,7 @@ try
     foreach ($distinguishedName in $groupList)
     {
         $codes += Get-CodeByGroup -distinguishedName $distinguishedName
-        $logs += "Получен код $($codes)"
+        $logs += "По группе получен код - $($codes)"
     }
 }
 catch
