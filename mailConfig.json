@@ -1,6 +1,0 @@
-{
-  "sender":"aku0\\error-sender",
-  "keyPath":"\\\\aku.com\\sysvol\\aku.com\\scripts\\Sender error report\\aes.key",
-  "cryptedPass": "\\\\aku.com\\sysvol\\aku.com\\scripts\\Sender error report\\password.txt",
-  "SmtpServer": "wm2.comfy.ua"
-}
