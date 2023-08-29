@@ -17,6 +17,8 @@
    или возникла ошибка при выполнении LDAP-запроса, бросаем исключение.
    Иначе, проверяем есть ли группы с маской "*printers access*" в названии
 #>
+
+#region functions
 function Get-UsersGroupsList()
 {
     param(
@@ -146,9 +148,14 @@ function Get-Printers(
     [string]$printSRV,
     $log)
 {
-    [array]$printers =
+    Write-Host $shopcode -ForegroundColor Cyan
+
+    Write-Host $printSRV -ForegroundColor Cyan
+    $printers =
         @(Get-Printer -ComputerName $printSRV | `
-            ? {($_.Name -like ("*_"+$shopcode))})
+            ? {($_.Name -like ("*$shopcode*"))})
+
+    Write-Host $printers
 
     # проверяем количество принтеров, если меньше 1,
     # т.е. принтеров нет, бросаем исключение
@@ -197,6 +204,8 @@ function Send-Mail()
         -Body $($message | Out-String) -BodyAsHtml -Encoding $encoding `
         -SmtpServer $mailConfig.SmtpServer -Credential $EmailCredential
 }
+
+#endregion functions
 
 # ============= начало скрипта ================
 
@@ -264,13 +273,14 @@ catch
 #endregion получение кода магазина
 
 #region Обработка принтеров
-
-[string]$printSRV = "lt-printsrv2" 
+[string]$printSRV1 = "lt-printsrv1" 
+[string]$printSRV2 = "lt-printsrv2" 
 
 $printers = @()
 for ([int16]$i = 0; $i -lt $codes.Count; ++$i)
 {
-    $printers += Get-Printers -shopcode $codes[$i] -printSRV $printSRV -log $logs
+    $printers += Get-Printers -shopcode $codes[$i] -printSRV $printSRV1 -log $logs
+    $printers += Get-Printers -shopcode $codes[$i] -printSRV $printSRV2 -log $logs
 }
 
 $logs += "Полученные принтера:`t$($printers)"
@@ -281,7 +291,7 @@ Get-Printer | ? {$_.Type -eq "Connection"} | Remove-Printer
 # добавление принтеров
 foreach ($printer in $printers)
 {
-    $printername=("\\"+ $printSRV +"\"+$printer.Name)
+    $printername=("\\"+ $printer.ComputerName +"\"+$printer.Name)
 
     Add-Printer -ConnectionName $printername -Confirm:$false
 
